@@ -8,5 +8,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
-
+    public Optional<AppUser> findByEmailAndPassword(String email, String password);
 }
