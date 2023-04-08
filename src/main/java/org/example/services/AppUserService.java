@@ -29,6 +29,7 @@ public class AppUserService {
 
     /** CREATE **/
     public UUID insert(AppUser user){
+        user.setIsAdmin(false);
         user = appUserRepository.save(user);
         LOGGER.debug("Person with id {} was inserted in db", user.getId());
         return user.getId();
@@ -82,6 +83,21 @@ public class AppUserService {
             throw new ResourceNotFoundException(AppUser.class.getSimpleName());
         }
         return AppUserBuilder.toAppUserDTO(user.get());
+    }
+
+    /**EDIT PASSWORD**/
+    public UUID editPassword(String email, String oldPassword, String newPassword){
+        Optional<AppUser> user = appUserRepository.findByEmailAndPassword(email, oldPassword);
+        if(!user.isPresent()){
+            LOGGER.error("The password is incorrect");
+            throw new ResourceNotFoundException(AppUser.class.getSimpleName());
+        }
+
+        user.get().setPassword(newPassword);
+        AppUser appUser = appUserRepository.save(user.get());
+        LOGGER.debug("Password updated for user with id {}", appUser.getId());
+
+        return appUser.getId();
     }
 
 }
