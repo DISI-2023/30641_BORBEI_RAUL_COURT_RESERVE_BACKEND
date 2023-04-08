@@ -1,6 +1,7 @@
 package org.example.controllers;
 
 import org.example.dtos.AppUserDetailsDTO;
+import org.example.dtos.NewPasswordDTO;
 import org.example.entities.AppUser;
 import org.example.services.AppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,12 @@ public class AppUserController {
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<UUID> deleteUser(@PathVariable("id") UUID id){
         appUserService.delete(id);
+        return new ResponseEntity<>(id, HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/editPassword")
+    public ResponseEntity<UUID> editPassword(@Valid @RequestBody NewPasswordDTO user){
+        UUID id = appUserService.editPassword(user.getEmail(), user.getOldPassword(), user.getNewPassword());
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
