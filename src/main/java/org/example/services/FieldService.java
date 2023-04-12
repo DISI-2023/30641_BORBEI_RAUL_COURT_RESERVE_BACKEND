@@ -60,6 +60,15 @@ public class FieldService {
         return FieldBuilder.toFieldDetailsDTO(field.get());
     }
 
+    /** tested **/
+    public List<FieldDetailsDTO> findByLocationId(UUID locationId){
+        Location location = this.validateLocation(locationId);
+
+        List<Field> fields = fieldRepository.findByLocation(location);
+        return fields.stream().map(FieldBuilder::toFieldDetailsDTO).collect(Collectors.toList());
+
+    }
+
     /** UPDATE **/
     /** tested **/
     public UUID update(FieldDetailsDTO dto){

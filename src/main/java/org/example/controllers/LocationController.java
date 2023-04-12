@@ -24,7 +24,7 @@ public class LocationController {
     }
 
     /**
-     * I have tested all methods of this class and under normal circumstances
+     * I have tested all methods of this class marked with ~tested~ and under normal circumstances
      * locations are inserted, selected, updated and deleted from the DB.
      */
 

@@ -1,6 +1,7 @@
 package org.example.controllers;
 
 import org.example.dtos.FieldDetailsDTO;
+import org.example.dtos.LocationDTO;
 import org.example.services.FieldService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,11 @@ public class FieldController {
         this.fieldService = fieldService;
     }
 
+    /**
+     * I have tested all methods of this class marked with ~tested~ and under normal circumstances
+     * locations are inserted, selected, updated and deleted from the DB.
+     */
+
     /** INSERT **/
     /** tested **/
     @PostMapping
@@ -44,6 +50,13 @@ public class FieldController {
     public ResponseEntity<FieldDetailsDTO> getFieldById(@PathVariable("id") UUID id){
         FieldDetailsDTO dto = fieldService.findById(id);
         return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    /** tested **/
+    @GetMapping(value = "/location/{id}")
+    public ResponseEntity<List<FieldDetailsDTO>> getFieldsByLocation(@PathVariable("id") UUID loactionId){
+        List<FieldDetailsDTO> fields = fieldService.findByLocationId(loactionId);
+        return new ResponseEntity<>(fields, HttpStatus.OK);
     }
 
     /** tested **/
