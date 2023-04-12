@@ -23,8 +23,13 @@ public class LocationController {
         this.locationService = locationService;
     }
 
+    /**
+     * I have tested all methods of this class and under normal circumstances
+     * locations are inserted, selected, updated and deleted from the DB.
+     */
+
     /** INSERT **/
-    /** not tested **/
+    /** tested **/
     @PostMapping
     public ResponseEntity<UUID> insertLocation(@Valid @RequestBody LocationDTO dto){
         UUID id = locationService.insert(dto);
@@ -32,28 +37,28 @@ public class LocationController {
     }
 
     /** SELECT **/
-    /** not tested **/
+    /** tested **/
     @GetMapping
     public ResponseEntity<List<LocationDTO>> getLocations(){
         List<LocationDTO> locations = locationService.findAll();
         return new ResponseEntity<>(locations, HttpStatus.OK);
     }
 
-    /** not tested **/
+    /** tested **/
     @GetMapping(value = "/{id}")
     public ResponseEntity<LocationDTO> getLocationById(@PathVariable("id") UUID id){
         LocationDTO dto = locationService.findById(id);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    /** not tested **/
+    /** tested **/
     @PutMapping
     public ResponseEntity<UUID> updateLocation(@Valid @RequestBody LocationDTO dto){
         UUID id = locationService.update(dto);
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
-    /** not tested **/
+    /** tested **/
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<UUID> deleteLocation(@PathVariable("id") UUID id){
         locationService.delete(id);

@@ -24,7 +24,7 @@ public class FieldController {
     }
 
     /** INSERT **/
-    /** not tested **/
+    /** tested **/
     @PostMapping
     public ResponseEntity<UUID> insertField(@Valid @RequestBody FieldDetailsDTO dto){
         UUID id = fieldService.insert(dto);
@@ -32,28 +32,31 @@ public class FieldController {
     }
 
     /** SELECT **/
-    /** not tested **/
+    /** tested **/
     @GetMapping
     public ResponseEntity<List<FieldDetailsDTO>> getFields(){
         List<FieldDetailsDTO> fields = fieldService.findAll();
         return new ResponseEntity<>(fields, HttpStatus.OK);
     }
 
-    /** not tested **/
+    /** tested **/
     @GetMapping(value = "/{id}")
     public ResponseEntity<FieldDetailsDTO> getFieldById(@PathVariable("id") UUID id){
         FieldDetailsDTO dto = fieldService.findById(id);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    /** not tested **/
+    /** tested **/
     @PutMapping
     public ResponseEntity<UUID> updateField(@Valid @RequestBody FieldDetailsDTO dto){
         UUID id = fieldService.update(dto);
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
-    /** not tested **/
+    /** tested
+     *  If a location is deleted all fields from that location
+     *  are deleted too, according to the cascading rules
+     **/
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<UUID> deleteField(@PathVariable("id") UUID id){
         fieldService.delete(id);

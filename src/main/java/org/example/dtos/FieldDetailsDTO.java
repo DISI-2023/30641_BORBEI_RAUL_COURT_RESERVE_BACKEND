@@ -12,13 +12,14 @@ import java.util.UUID;
 @NoArgsConstructor
 public class FieldDetailsDTO {
 
-    /** This has the exact fields as the entity (except the OneToMany fields),
-     * but on Raul's advice it was not recommended to send the entity directly
-     * to the frontend **/
+    /**
+     * The differences between this and the entity itself are the exclusion of the OneToMany fields
+     * and the fact that in a DTO only a location ID is provided, instead of a whole Location object
+     * **/
 
     private UUID id;
 
     private String name;
 
-    private Location location;
+    private UUID locationId;
 }

@@ -27,7 +27,7 @@ public class LocationService {
     }
 
     /** CREATE **/
-    /** not tested **/
+    /** tested **/
     public UUID insert(LocationDTO dto){
         Location location = LocationBuilder.toEntity(dto);
         location = locationRepository.save(location);
@@ -36,13 +36,13 @@ public class LocationService {
     }
 
     /** SELECT **/
-    /** not tested **/
+    /** tested **/
     public List<LocationDTO> findAll(){
         List<Location> locations = locationRepository.findAll();
         return locations.stream().map(LocationBuilder::toLocationDTO).collect(Collectors.toList());
     }
 
-    /** not tested **/
+    /** tested **/
     public LocationDTO findById(UUID id){
         Optional<Location> location = locationRepository.findById(id);
         if (!location.isPresent()){
@@ -53,7 +53,7 @@ public class LocationService {
     }
 
     /** UPDATE **/
-    /** not tested **/
+    /** tested **/
     public UUID update(LocationDTO dto){
         UUID id = dto.getId();
         Optional<Location> location = locationRepository.findById(id);
@@ -71,7 +71,7 @@ public class LocationService {
     }
 
     /** DELETE **/
-    /** not tested **/
+    /** tested **/
     public void delete(UUID id){
         Optional<Location> location = locationRepository.findById(id);
         if (!location.isPresent()){
