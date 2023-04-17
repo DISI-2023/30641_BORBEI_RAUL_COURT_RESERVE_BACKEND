@@ -60,7 +60,7 @@ public class AppUserService {
         user.get().setUsername(appUserDetailsDTO.getUsername());
         user.get().setEmail(appUserDetailsDTO.getEmail());
         AppUser appUser = appUserRepository.save(user.get());
-        LOGGER.debug("Person with id {} was inserted in db", appUser.getId());
+        LOGGER.debug("Person with id {} was updated in db", appUser.getId());
         return appUser.getId();
     }
 
