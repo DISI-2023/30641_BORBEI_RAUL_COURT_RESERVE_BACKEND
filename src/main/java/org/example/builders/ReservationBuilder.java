@@ -12,6 +12,7 @@ public class ReservationBuilder {
                 .finalPrice(reservation.getFinalPrice())
                 .fieldName(reservation.getField().getName())
                 .userEmail(reservation.getAppUser().getEmail())
+                .type(reservation.getTariffType())
                 .build();
     }
 
@@ -20,6 +21,7 @@ public class ReservationBuilder {
                 .startTime(reservationDTO.getStartTime())
                 .endTime(reservationDTO.getEndTime())
                 .finalPrice(reservationDTO.getFinalPrice())
+                .tariffType(reservationDTO.getType())
                 .build();
     }
 }
