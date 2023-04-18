@@ -23,9 +23,9 @@ public class TariffService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TariffService.class);
 
-    private TariffRepository tariffRepository;
+    private final TariffRepository tariffRepository;
 
-    private FieldRepository fieldRepository;
+    private final FieldRepository fieldRepository;
 
     @Autowired
     public TariffService(TariffRepository tariffRepository, FieldRepository fieldRepository){
@@ -96,7 +96,7 @@ public class TariffService {
     /**
      * DELETE
      */
-    public void delete(TariffDTO tariffDTO){
+    public UUID delete(TariffDTO tariffDTO){
         Optional<Field> field = fieldRepository.findByName(tariffDTO.getFieldName());
         if(!field.isPresent())
             LOGGER.error("Field with name {} not found", tariffDTO.getFieldName());
@@ -104,8 +104,10 @@ public class TariffService {
         Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), tariffDTO.getType());
         if(!tariff.isPresent())
             LOGGER.error("Tariff was not found in db");
+        UUID id = tariff.get().getId();
         tariffRepository.delete(tariff.get());
         LOGGER.info("Tariff was deleted");
+        return id;
     }
 
 }
