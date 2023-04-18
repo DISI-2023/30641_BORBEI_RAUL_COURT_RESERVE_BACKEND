@@ -12,4 +12,6 @@ public interface FieldRepository extends JpaRepository<Field, UUID> {
 
     public List<Field> findByLocation(Location location);
 
+    Optional<Field> findByName(String name);
+
 }
