@@ -1,5 +1,6 @@
 package org.example.services;
 
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.example.builders.ReservationBuilder;
 import org.example.dtos.ReservationDTO;
 import org.example.dtos.TariffDTO;
@@ -106,6 +107,61 @@ public class ReservationService {
     public List<ReservationDTO> getAll(){
         List<Reservation> reservations = reservationRepository.findAll();
         return reservations.stream().map(ReservationBuilder::toReservationDTO).collect(Collectors.toList());
+    }
+
+    public List<ReservationDTO> getUserReservations(UUID id){
+        Optional<AppUser> appUser = appUserRepository.findById(id);
+        if(!appUser.isPresent()) {
+            LOGGER.error("User with id {} not found", id);
+            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+        List<Reservation> reservations = reservationRepository.findByAppUser(appUser.get());
+        return reservations.stream().map(ReservationBuilder::toReservationDTO).collect(Collectors.toList());
+    }
+
+    /**
+     * UPDATE
+     */
+    public UUID update(ReservationDTO reservationDTO){
+        Optional<Reservation> reservation = reservationRepository.findById(reservationDTO.getId());
+        if(!reservation.isPresent()){
+            LOGGER.error("Reservation not found");
+            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+
+        Optional<Field> field = fieldRepository.findByName(reservationDTO.getFieldName());
+        if(!field.isPresent()) {
+            LOGGER.error("Field with name {} not found", reservationDTO.getFieldName());
+            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+
+        Optional<Reservation> checkReservation = reservationRepository.findByFieldAndStartTimeAndEndTime(field.get(), reservationDTO.getStartTime(), reservationDTO.getEndTime());
+        if(checkReservation.isPresent()) {
+            LOGGER.error("In the time slot specified already exists an reservation");
+            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+
+        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), reservationDTO.getType());
+        if(!tariff.isPresent()) {
+            LOGGER.error("A valid tariff was not found for the specific field");
+            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+        long time = computeTime(tariff.get(), reservationDTO);
+        double finalPrice = tariff.get().getPrice() * time;
+        reservation.get().setStartTime(reservationDTO.getStartTime());
+        reservation.get().setEndTime(reservationDTO.getEndTime());
+        reservation.get().setFinalPrice(finalPrice);
+        reservationRepository.save(reservation.get());
+        LOGGER.info("Reservation updated");
+        return reservationDTO.getId();
+    }
+
+    /**
+     * DELETE
+     */
+    public UUID delete(UUID id){
+        reservationRepository.deleteById(id);
+        return id;
     }
 
 }

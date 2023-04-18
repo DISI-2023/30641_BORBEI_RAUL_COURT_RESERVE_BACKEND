@@ -39,4 +39,35 @@ public class ReservationController {
         List<ReservationDTO> list = reservationService.getAll();
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
+
+    /**
+     * Get reservation of user with id {}
+     * @param id
+     * @return
+     */
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<List<ReservationDTO>> getUserReservations(@PathVariable("id") UUID id){
+        List<ReservationDTO> reservationDTOS = reservationService.getUserReservations(id);
+        return new ResponseEntity<>(reservationDTOS, HttpStatus.OK);
+    }
+
+    /**
+     * Method for updating start and end time of a reservation
+     * The final price will be computed again
+     * @param reservationDTO
+     * @return
+     */
+    @PutMapping()
+    public ResponseEntity<UUID> update(@Valid @RequestBody ReservationDTO reservationDTO){
+        UUID id  = reservationService.update(reservationDTO);
+        return new ResponseEntity<>(id, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public  ResponseEntity<UUID> deleteReservation(@PathVariable("id") UUID id){
+        UUID idDeleted = reservationService.delete(id);
+        return new ResponseEntity<>(idDeleted, HttpStatus.OK);
+    }
+
+
 }
