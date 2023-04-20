@@ -10,6 +10,7 @@ import org.example.repositories.TariffRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,8 +39,10 @@ public class TariffService {
      */
     public UUID insert(TariffDTO tariffDTO){
         Optional<Field> field = fieldRepository.findByName(tariffDTO.getFieldName());
-        if(!field.isPresent())
+        if(!field.isPresent()) {
             LOGGER.error("Field with name {} not found", tariffDTO.getFieldName());
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
 
         Tariff tariff = TariffBuilder.toEntity(tariffDTO);
         tariff.setField(field.get());
@@ -58,19 +61,25 @@ public class TariffService {
 
     public TariffDTO getTariffById(UUID id){
         Optional<Tariff> tariff = tariffRepository.findById(id);
-        if(!tariff.isPresent())
+        if(!tariff.isPresent()) {
             LOGGER.error("Tariff with id {} was not found", id);
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
         return TariffBuilder.toTariffDTO(tariff.get());
     }
 
     public TariffDTO getTariffByField(String fieldName){
         Optional<Field> field = fieldRepository.findByName(fieldName);
-        if(!field.isPresent())
+        if(!field.isPresent()) {
             LOGGER.error("Field with name {} not found", fieldName);
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
 
         Optional<Tariff> tariff = tariffRepository.findByField(field.get());
-        if(!tariff.isPresent())
+        if(!tariff.isPresent()) {
             LOGGER.error("Tariff was not found in db");
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
 
         return TariffBuilder.toTariffDTO(tariff.get());
     }
@@ -80,12 +89,16 @@ public class TariffService {
      */
     public UUID update(TariffUpdateDTO tariffUpdateDTO){
         Optional<Field> field = fieldRepository.findByName(tariffUpdateDTO.getFieldName());
-        if(!field.isPresent())
+        if(!field.isPresent()) {
             LOGGER.error("Field with name {} not found", tariffUpdateDTO.getFieldName());
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
 
         Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), tariffUpdateDTO.getType());
-        if(!tariff.isPresent())
+        if(!tariff.isPresent()) {
             LOGGER.error("Tariff was not found in db");
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
 
         tariff.get().setPrice(tariffUpdateDTO.getOldPrice());
         tariffRepository.save(tariff.get());
@@ -98,12 +111,16 @@ public class TariffService {
      */
     public UUID delete(TariffDTO tariffDTO){
         Optional<Field> field = fieldRepository.findByName(tariffDTO.getFieldName());
-        if(!field.isPresent())
+        if(!field.isPresent()) {
             LOGGER.error("Field with name {} not found", tariffDTO.getFieldName());
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
 
         Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), tariffDTO.getType());
-        if(!tariff.isPresent())
+        if(!tariff.isPresent()) {
             LOGGER.error("Tariff was not found in db");
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
         UUID id = tariff.get().getId();
         tariffRepository.delete(tariff.get());
         LOGGER.info("Tariff was deleted");
