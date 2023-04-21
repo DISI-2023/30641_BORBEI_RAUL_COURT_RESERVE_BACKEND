@@ -44,4 +44,7 @@ public class Reservation {
 
     @OneToOne(mappedBy = "reservation")
     private Request request;
+
+    @Column(name = "tariffType", nullable = false)
+    private String tariffType;
 }
