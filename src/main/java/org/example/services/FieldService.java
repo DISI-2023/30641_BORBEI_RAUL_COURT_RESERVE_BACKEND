@@ -1,6 +1,7 @@
 package org.example.services;
 
 import org.example.builders.FieldBuilder;
+import org.example.dtos.FieldAndLocationDetailsDTO;
 import org.example.dtos.FieldDetailsDTO;
 import org.example.entities.Field;
 import org.example.entities.Location;
@@ -45,9 +46,9 @@ public class FieldService {
 
     /** SELECT **/
     /** tested **/
-    public List<FieldDetailsDTO> findAll(){
+    public List<FieldAndLocationDetailsDTO> findAll(){
         List<Field> fields = fieldRepository.findAll();
-        return fields.stream().map(FieldBuilder::toFieldDetailsDTO).collect(Collectors.toList());
+        return fields.stream().map(FieldBuilder::toFieldAndLocationDetailsDTO).collect(Collectors.toList());
     }
 
     /** tested **/
