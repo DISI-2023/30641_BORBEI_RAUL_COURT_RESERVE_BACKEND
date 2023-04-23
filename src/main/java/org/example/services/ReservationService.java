@@ -2,6 +2,8 @@ package org.example.services;
 
 import net.bytebuddy.implementation.bytecode.Throw;
 import org.example.builders.ReservationBuilder;
+import org.example.dtos.FieldNameAndDateDTO;
+import org.example.dtos.FreeReservationIntervalsDTO;
 import org.example.dtos.ReservationDTO;
 import org.example.dtos.TariffDTO;
 import org.example.entities.AppUser;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -162,6 +165,61 @@ public class ReservationService {
     public UUID delete(UUID id){
         reservationRepository.deleteById(id);
         return id;
+    }
+
+    /**
+     * Get the intervals of time with no reservations, by field and date
+     */
+    public List<FreeReservationIntervalsDTO> getVacantIntervalsByFieldAndDate(FieldNameAndDateDTO fieldNameAndDateDTO){
+        Field field = this.validateField(fieldNameAndDateDTO.getFieldName());
+        LocalDateTime date = fieldNameAndDateDTO.getDate();
+
+        /**
+         * Here we retrieve all the reservations from the provided date, starting with
+         * 10 AM all the way to 10 PM, as these are the agreed business hours
+         */
+        List<Reservation> allReservationsFromDay = reservationRepository.
+                findByFieldAndStartTimeGreaterThanEqualAndStartTimeLessThanEqual(field,
+                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 10, 00),
+                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 21, 59));
+
+        List<FreeReservationIntervalsDTO> freeReservationIntervals = new ArrayList<FreeReservationIntervalsDTO>();
+
+        /**
+         * Here I loop through every hour from 10 to 22 and iterate each step through the entire list of reservations
+         * from the specified date. If no reservations are found for an hour then an item is added to the final list
+         * specifying the start and end time of each interval which is free.
+         * One important aspect is that we consider that all reservations are done at fixed hours (12:00, 13:00, etc)
+         * and always last multiples of hours (1, 2, 3 or more hours)
+         */
+        for (int i = 10; i < 22; i++){
+            boolean isFree = true;
+            for (Reservation r : allReservationsFromDay ){
+                if ( r.getStartTime().getHour() <= i && r.getEndTime().getHour() > i){
+                    isFree = false;
+                    break;
+                }
+            }
+            if (isFree){
+                LocalDateTime startTime = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(),
+                        i, 0);
+                LocalDateTime endTime = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(),
+                        i+1, 0);
+                freeReservationIntervals.add(new FreeReservationIntervalsDTO(startTime, endTime));
+            }
+        }
+
+        return freeReservationIntervals;
+    }
+
+
+    private Field validateField(String fieldName){
+        Optional<Field> field = fieldRepository.findByName(fieldName);
+        if(!field.isPresent()) {
+            LOGGER.error("Field with name {} not found", fieldName);
+            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+        return field.get();
     }
 
 }
