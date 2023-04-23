@@ -2,8 +2,6 @@ package org.example.dtos;
 
 import lombok.*;
 
-import java.util.UUID;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -11,6 +9,9 @@ import java.util.UUID;
 @Builder
 public class TariffUpdateDTO {
 
+    /**
+        Attribute type must only have the following values: Hourly, Daily, Weekly, Monthly
+     */
     private String type;
 
     private String fieldName;

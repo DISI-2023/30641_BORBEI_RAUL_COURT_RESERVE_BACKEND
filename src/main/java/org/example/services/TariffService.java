@@ -44,11 +44,23 @@ public class TariffService {
             throw new ResourceNotFoundException(TariffService.class.getSimpleName());
         }
 
+        if (!this.isTariffTypeValid(tariffDTO.getType())){
+            LOGGER.error("Tariff type is invalid! It must have one of the following values: Hourly, Daily, Weekly, Monthly");
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
+
         Tariff tariff = TariffBuilder.toEntity(tariffDTO);
         tariff.setField(field.get());
         tariffRepository.save(tariff);
         LOGGER.info("Tariff was inserted in db");
         return tariff.getId();
+    }
+
+    /**
+     * This verifies that the type introduced is one of the 4 valid ones (Hourly, Daily, Weekly, Monthly)
+     */
+    private boolean isTariffTypeValid(String type){
+        return type.equals("Hourly") || type.equals("Daily") || type.equals("Weekly") || type.equals("Monthly");
     }
 
     /**

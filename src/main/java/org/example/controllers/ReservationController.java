@@ -1,5 +1,7 @@
 package org.example.controllers;
 
+import org.example.dtos.FieldNameAndDateDTO;
+import org.example.dtos.FreeReservationIntervalsDTO;
 import org.example.dtos.ReservationDTO;
 import org.example.services.ReservationService;
 import org.springframework.http.HttpStatus;
@@ -45,10 +47,25 @@ public class ReservationController {
      * @param id
      * @return
      */
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/user/{id}")
     public ResponseEntity<List<ReservationDTO>> getUserReservations(@PathVariable("id") UUID id){
         List<ReservationDTO> reservationDTOS = reservationService.getUserReservations(id);
         return new ResponseEntity<>(reservationDTOS, HttpStatus.OK);
+    }
+
+    /**
+     * Gets a list of all vacant slots in the timetable from a specified Field on a specific date
+     * @param fieldNameAndDateDTO
+     * @return
+     */
+    @GetMapping(value="/vacancies")
+    public ResponseEntity<List<FreeReservationIntervalsDTO>> getVacantIntervalsByFieldAndDate(
+            @Valid @RequestBody FieldNameAndDateDTO fieldNameAndDateDTO){
+
+        List<FreeReservationIntervalsDTO> vacantIntervals = reservationService.getVacantIntervalsByFieldAndDate(
+                fieldNameAndDateDTO);
+
+        return new ResponseEntity<>(vacantIntervals, HttpStatus.OK);
     }
 
     /**
