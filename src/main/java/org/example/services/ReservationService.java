@@ -51,8 +51,9 @@ public class ReservationService {
 
     /**
      * CREATE
-     * A reservation can be made only if the time slot is available.
-     * The final price is computed based on the tariff type which can be: hourly, daily, weekly, monthly
+     * The final price is computed based on the tariff type hourly, which is not needed to be
+     * specified in the body of the API call
+     * The reservation cannot be made for more than 24h
      */
     public UUID insert(ReservationDTO reservationDTO){
         Optional<Field> field = fieldRepository.findByName(reservationDTO.getFieldName());
@@ -65,18 +66,17 @@ public class ReservationService {
             LOGGER.error("User with email {} not found", reservationDTO.getUserEmail());
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), reservationDTO.getType());
+        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), "Hourly");
         if(!tariff.isPresent()) {
             LOGGER.error("A valid tariff was not found for the specific field");
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        Optional<Reservation> reservation = reservationRepository.findByFieldAndStartTimeAndEndTime(field.get(), reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(reservation.isPresent()) {
-            LOGGER.error("In the time slot specified already exists an reservation");
-            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
-        }
 
-        long time = computeTime(tariff.get(), reservationDTO);
+        long time = computeTime(reservationDTO);
+        if(time == -1 ){
+            LOGGER.error("Reservation cannot  be made for more than 24h");
+            throw new IndexOutOfBoundsException(ReservationService.class.getSimpleName());
+        }
 
         double finalPrice = tariff.get().getPrice() * time;
 
@@ -90,17 +90,11 @@ public class ReservationService {
         return  newReservation.getId();
     }
 
-    private long  computeTime(Tariff tariff, ReservationDTO reservationDTO){
+    private long  computeTime(ReservationDTO reservationDTO){
         long time = 0;
-
-        if(tariff.getType().equals("Hourly"))
-            time = ChronoUnit.HOURS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(tariff.getType().equals("Daily"))
-            time = ChronoUnit.DAYS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(tariff.getType().equals("Weekly"))
-            time = ChronoUnit.WEEKS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(tariff.getType().equals("Monthly"))
-            time = ChronoUnit.MONTHS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
+        time = ChronoUnit.HOURS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
+        if(time > 24)
+            return -1;
         return time;
     }
 
@@ -138,18 +132,16 @@ public class ReservationService {
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
 
-        Optional<Reservation> checkReservation = reservationRepository.findByFieldAndStartTimeAndEndTime(field.get(), reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(checkReservation.isPresent()) {
-            LOGGER.error("In the time slot specified already exists an reservation");
-            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
-        }
-
-        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), reservationDTO.getType());
+        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), "Hourly");
         if(!tariff.isPresent()) {
             LOGGER.error("A valid tariff was not found for the specific field");
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        long time = computeTime(tariff.get(), reservationDTO);
+        long time = computeTime(reservationDTO);
+        if(time == -1 ){
+            LOGGER.error("Reservation cannot  be made for more than 24h");
+            throw new IndexOutOfBoundsException(ReservationService.class.getSimpleName());
+        }
         double finalPrice = tariff.get().getPrice() * time;
         reservation.get().setStartTime(reservationDTO.getStartTime());
         reservation.get().setEndTime(reservationDTO.getEndTime());

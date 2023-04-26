@@ -28,7 +28,8 @@ public class ReservationController {
      *
      * @param reservationDTO
      * @return UUID
-     * The DTO should contain the following: startTime, endTime, fieldName, userEmail and type ( tariff type)
+     * The DTO should contain the following: startTime, endTime, fieldName, userEmail
+     * The default type is Hourly and  is not needed to be specified
      */
     @PostMapping()
     public ResponseEntity<UUID> createReservation(@Valid @RequestBody ReservationDTO reservationDTO){
