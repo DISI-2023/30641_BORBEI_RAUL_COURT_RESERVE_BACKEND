@@ -59,7 +59,7 @@ public class ReservationController {
      * @param fieldNameAndDateDTO
      * @return
      */
-    @GetMapping(value="/vacancies")
+    @PostMapping(value="/vacancies")
     public ResponseEntity<List<FreeReservationIntervalsDTO>> getVacantIntervalsByFieldAndDate(
             @Valid @RequestBody FieldNameAndDateDTO fieldNameAndDateDTO){
 
