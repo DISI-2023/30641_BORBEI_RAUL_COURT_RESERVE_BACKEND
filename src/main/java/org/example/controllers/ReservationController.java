@@ -81,10 +81,17 @@ public class ReservationController {
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
+    /**
+     * @param id
+     * @return true OK if deleted or NOT_MODIFIED if not deleted
+     */
     @DeleteMapping(value = "/{id}")
     public  ResponseEntity<UUID> deleteReservation(@PathVariable("id") UUID id){
-        UUID idDeleted = reservationService.delete(id);
-        return new ResponseEntity<>(idDeleted, HttpStatus.OK);
+        boolean deleted = reservationService.delete(id);
+        if(deleted)
+            return new ResponseEntity<>(id, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(id, HttpStatus.NOT_MODIFIED);
     }
 
 

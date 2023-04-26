@@ -154,9 +154,21 @@ public class ReservationService {
     /**
      * DELETE
      */
-    public UUID delete(UUID id){
+    public boolean delete(UUID id){
+        Optional<Reservation> reservation = reservationRepository.findById(id);
+        if(!reservation.isPresent()){
+            LOGGER.error("Cannot find reservation");
+            throw  new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+        LocalDateTime currentTime = LocalDateTime.now();
+        long timeLeft = ChronoUnit.HOURS.between(currentTime, reservation.get().getStartTime());
+        if(timeLeft < 24)
+        {
+            LOGGER.info("A reservation can be canceled only with minimum of 24h in advance");
+            return false;
+        }
         reservationRepository.deleteById(id);
-        return id;
+        return true;
     }
 
     /**
