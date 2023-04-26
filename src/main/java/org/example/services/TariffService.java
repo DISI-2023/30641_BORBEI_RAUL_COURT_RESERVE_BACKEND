@@ -107,7 +107,7 @@ public class TariffService {
             throw new ResourceNotFoundException(TariffService.class.getSimpleName());
         }
 
-        tariff.get().setPrice(tariffUpdateDTO.getOldPrice());
+        tariff.get().setPrice(tariffUpdateDTO.getNewPrice());
         tariffRepository.save(tariff.get());
         LOGGER.info("Tariff was set from {} to {}", tariffUpdateDTO.getOldPrice(), tariffUpdateDTO.getNewPrice());
         return tariff.get().getId();
