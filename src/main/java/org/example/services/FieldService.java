@@ -1,12 +1,15 @@
 package org.example.services;
 
 import org.example.builders.FieldBuilder;
+import org.example.builders.TariffBuilder;
 import org.example.dtos.FieldAndLocationDetailsDTO;
 import org.example.dtos.FieldDetailsDTO;
 import org.example.entities.Field;
 import org.example.entities.Location;
+import org.example.entities.Tariff;
 import org.example.repositories.FieldRepository;
 import org.example.repositories.LocationRepository;
+import org.example.repositories.TariffRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +28,13 @@ public class FieldService {
     private final FieldRepository fieldRepository;
     private final LocationRepository locationRepository;
 
+    private final TariffRepository tariffRepository;
+
     @Autowired
-    public FieldService (FieldRepository fieldRepository, LocationRepository locationRepository){
+    public FieldService (FieldRepository fieldRepository, LocationRepository locationRepository, TariffRepository tariffRepository){
         this.fieldRepository = fieldRepository;
         this.locationRepository = locationRepository;
+        this.tariffRepository = tariffRepository;
     }
 
     /** CREATE **/
@@ -39,9 +45,20 @@ public class FieldService {
 
         Field field = FieldBuilder.toEntity(dto, newLocation);
         field = fieldRepository.save(field);
-
+        createDefaultTariffs(field, "Hourly");
+        createDefaultTariffs(field, "Daily");
+        createDefaultTariffs(field, "Weekly");
+        createDefaultTariffs(field, "Monthly");
         LOGGER.debug("Field with id {} was inserted in db", field.getId());
         return field.getId();
+    }
+
+    private void createDefaultTariffs(Field field, String type){
+        Tariff newTariff = new Tariff();
+        newTariff.setField(field);
+        newTariff.setPrice(0);
+        newTariff.setType(type);
+        tariffRepository.save(newTariff);
     }
 
     /** SELECT **/

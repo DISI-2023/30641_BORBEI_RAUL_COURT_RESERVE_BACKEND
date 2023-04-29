@@ -28,7 +28,8 @@ public class ReservationController {
      *
      * @param reservationDTO
      * @return UUID
-     * The DTO should contain the following: startTime, endTime, fieldName, userEmail and type ( tariff type)
+     * The DTO should contain the following: startTime, endTime, fieldName, userEmail
+     * The default type is Hourly and  is not needed to be specified
      */
     @PostMapping()
     public ResponseEntity<UUID> createReservation(@Valid @RequestBody ReservationDTO reservationDTO){
@@ -58,7 +59,7 @@ public class ReservationController {
      * @param fieldNameAndDateDTO
      * @return
      */
-    @GetMapping(value="/vacancies")
+    @PostMapping(value="/vacancies")
     public ResponseEntity<List<FreeReservationIntervalsDTO>> getVacantIntervalsByFieldAndDate(
             @Valid @RequestBody FieldNameAndDateDTO fieldNameAndDateDTO){
 
@@ -80,10 +81,17 @@ public class ReservationController {
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
+    /**
+     * @param id
+     * @return true OK if deleted or NOT_MODIFIED if not deleted
+     */
     @DeleteMapping(value = "/{id}")
     public  ResponseEntity<UUID> deleteReservation(@PathVariable("id") UUID id){
-        UUID idDeleted = reservationService.delete(id);
-        return new ResponseEntity<>(idDeleted, HttpStatus.OK);
+        boolean deleted = reservationService.delete(id);
+        if(deleted)
+            return new ResponseEntity<>(id, HttpStatus.OK);
+        else
+            return new ResponseEntity<>(id, HttpStatus.NOT_MODIFIED);
     }
 
 
