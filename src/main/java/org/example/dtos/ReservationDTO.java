@@ -25,4 +25,5 @@ public class ReservationDTO {
     private String userEmail;
 
     private String type;
+
 }

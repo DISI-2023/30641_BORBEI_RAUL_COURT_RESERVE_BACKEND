@@ -44,11 +44,23 @@ public class TariffService {
             throw new ResourceNotFoundException(TariffService.class.getSimpleName());
         }
 
+        if (!this.isTariffTypeValid(tariffDTO.getType())){
+            LOGGER.error("Tariff type is invalid! It must have one of the following values: Hourly, Daily, Weekly, Monthly");
+            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
+        }
+
         Tariff tariff = TariffBuilder.toEntity(tariffDTO);
         tariff.setField(field.get());
         tariffRepository.save(tariff);
         LOGGER.info("Tariff was inserted in db");
         return tariff.getId();
+    }
+
+    /**
+     * This verifies that the type introduced is one of the 4 valid ones (Hourly, Daily, Weekly, Monthly)
+     */
+    private boolean isTariffTypeValid(String type){
+        return type.equals("Hourly") || type.equals("Daily") || type.equals("Weekly") || type.equals("Monthly");
     }
 
     /**
@@ -68,20 +80,15 @@ public class TariffService {
         return TariffBuilder.toTariffDTO(tariff.get());
     }
 
-    public TariffDTO getTariffByField(String fieldName){
+    public List<TariffDTO> getTariffByField(String fieldName){
         Optional<Field> field = fieldRepository.findByName(fieldName);
         if(!field.isPresent()) {
             LOGGER.error("Field with name {} not found", fieldName);
             throw new ResourceNotFoundException(TariffService.class.getSimpleName());
         }
+        List<Tariff> tariff = tariffRepository.findByField(field.get());
 
-        Optional<Tariff> tariff = tariffRepository.findByField(field.get());
-        if(!tariff.isPresent()) {
-            LOGGER.error("Tariff was not found in db");
-            throw new ResourceNotFoundException(TariffService.class.getSimpleName());
-        }
-
-        return TariffBuilder.toTariffDTO(tariff.get());
+        return tariff.stream().map(TariffBuilder::toTariffDTO).collect(Collectors.toList());
     }
 
     /**
@@ -100,7 +107,7 @@ public class TariffService {
             throw new ResourceNotFoundException(TariffService.class.getSimpleName());
         }
 
-        tariff.get().setPrice(tariffUpdateDTO.getOldPrice());
+        tariff.get().setPrice(tariffUpdateDTO.getNewPrice());
         tariffRepository.save(tariff.get());
         LOGGER.info("Tariff was set from {} to {}", tariffUpdateDTO.getOldPrice(), tariffUpdateDTO.getNewPrice());
         return tariff.get().getId();

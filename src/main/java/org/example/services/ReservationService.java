@@ -2,6 +2,8 @@ package org.example.services;
 
 import net.bytebuddy.implementation.bytecode.Throw;
 import org.example.builders.ReservationBuilder;
+import org.example.dtos.FieldNameAndDateDTO;
+import org.example.dtos.FreeReservationIntervalsDTO;
 import org.example.dtos.ReservationDTO;
 import org.example.dtos.TariffDTO;
 import org.example.entities.AppUser;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,8 +51,9 @@ public class ReservationService {
 
     /**
      * CREATE
-     * A reservation can be made only if the time slot is available.
-     * The final price is computed based on the tariff type which can be: hourly, daily, weekly, monthly
+     * The final price is computed based on the tariff type hourly, which is not needed to be
+     * specified in the body of the API call
+     * The reservation cannot be made for more than 24h
      */
     public UUID insert(ReservationDTO reservationDTO){
         Optional<Field> field = fieldRepository.findByName(reservationDTO.getFieldName());
@@ -62,18 +66,17 @@ public class ReservationService {
             LOGGER.error("User with email {} not found", reservationDTO.getUserEmail());
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), reservationDTO.getType());
+        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), "Hourly");
         if(!tariff.isPresent()) {
             LOGGER.error("A valid tariff was not found for the specific field");
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        Optional<Reservation> reservation = reservationRepository.findByFieldAndStartTimeAndEndTime(field.get(), reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(reservation.isPresent()) {
-            LOGGER.error("In the time slot specified already exists an reservation");
-            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
-        }
 
-        long time = computeTime(tariff.get(), reservationDTO);
+        long time = computeTime(reservationDTO);
+        if(time == -1 ){
+            LOGGER.error("Reservation cannot  be made for more than 24h");
+            throw new IndexOutOfBoundsException(ReservationService.class.getSimpleName());
+        }
 
         double finalPrice = tariff.get().getPrice() * time;
 
@@ -87,17 +90,11 @@ public class ReservationService {
         return  newReservation.getId();
     }
 
-    private long  computeTime(Tariff tariff, ReservationDTO reservationDTO){
+    private long  computeTime(ReservationDTO reservationDTO){
         long time = 0;
-
-        if(tariff.getType().equals("Hourly"))
-            time = ChronoUnit.HOURS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(tariff.getType().equals("Daily"))
-            time = ChronoUnit.DAYS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(tariff.getType().equals("Weekly"))
-            time = ChronoUnit.WEEKS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(tariff.getType().equals("Monthly"))
-            time = ChronoUnit.MONTHS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
+        time = ChronoUnit.HOURS.between(reservationDTO.getStartTime(), reservationDTO.getEndTime());
+        if(time > 24)
+            return -1;
         return time;
     }
 
@@ -135,18 +132,16 @@ public class ReservationService {
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
 
-        Optional<Reservation> checkReservation = reservationRepository.findByFieldAndStartTimeAndEndTime(field.get(), reservationDTO.getStartTime(), reservationDTO.getEndTime());
-        if(checkReservation.isPresent()) {
-            LOGGER.error("In the time slot specified already exists an reservation");
-            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
-        }
-
-        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), reservationDTO.getType());
+        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), "Hourly");
         if(!tariff.isPresent()) {
             LOGGER.error("A valid tariff was not found for the specific field");
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        long time = computeTime(tariff.get(), reservationDTO);
+        long time = computeTime(reservationDTO);
+        if(time == -1 ){
+            LOGGER.error("Reservation cannot  be made for more than 24h");
+            throw new IndexOutOfBoundsException(ReservationService.class.getSimpleName());
+        }
         double finalPrice = tariff.get().getPrice() * time;
         reservation.get().setStartTime(reservationDTO.getStartTime());
         reservation.get().setEndTime(reservationDTO.getEndTime());
@@ -159,9 +154,76 @@ public class ReservationService {
     /**
      * DELETE
      */
-    public UUID delete(UUID id){
+    public boolean delete(UUID id){
+        Optional<Reservation> reservation = reservationRepository.findById(id);
+        if(!reservation.isPresent()){
+            LOGGER.error("Cannot find reservation");
+            throw  new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+        LocalDateTime currentTime = LocalDateTime.now();
+        long timeLeft = ChronoUnit.HOURS.between(currentTime, reservation.get().getStartTime());
+        if(timeLeft < 24)
+        {
+            LOGGER.info("A reservation can be canceled only with minimum of 24h in advance");
+            return false;
+        }
         reservationRepository.deleteById(id);
-        return id;
+        return true;
+    }
+
+    /**
+     * Get the intervals of time with no reservations, by field and date
+     */
+    public List<FreeReservationIntervalsDTO> getVacantIntervalsByFieldAndDate(FieldNameAndDateDTO fieldNameAndDateDTO){
+        Field field = this.validateField(fieldNameAndDateDTO.getFieldName());
+        LocalDateTime date = fieldNameAndDateDTO.getDate();
+
+        /**
+         * Here we retrieve all the reservations from the provided date, starting with
+         * 10 AM all the way to 10 PM, as these are the agreed business hours
+         */
+        List<Reservation> allReservationsFromDay = reservationRepository.
+                findByFieldAndStartTimeGreaterThanEqualAndStartTimeLessThanEqual(field,
+                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 10, 00),
+                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 21, 59));
+
+        List<FreeReservationIntervalsDTO> freeReservationIntervals = new ArrayList<FreeReservationIntervalsDTO>();
+
+        /**
+         * Here I loop through every hour from 10 to 22 and iterate each step through the entire list of reservations
+         * from the specified date. If no reservations are found for an hour then an item is added to the final list
+         * specifying the start and end time of each interval which is free.
+         * One important aspect is that we consider that all reservations are done at fixed hours (12:00, 13:00, etc)
+         * and always last multiples of hours (1, 2, 3 or more hours)
+         */
+        for (int i = 10; i < 22; i++){
+            boolean isFree = true;
+            for (Reservation r : allReservationsFromDay ){
+                if ( r.getStartTime().getHour() <= i && r.getEndTime().getHour() > i){
+                    isFree = false;
+                    break;
+                }
+            }
+            if (isFree){
+                LocalDateTime startTime = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(),
+                        i, 0);
+                LocalDateTime endTime = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(),
+                        i+1, 0);
+                freeReservationIntervals.add(new FreeReservationIntervalsDTO(startTime, endTime));
+            }
+        }
+
+        return freeReservationIntervals;
+    }
+
+
+    private Field validateField(String fieldName){
+        Optional<Field> field = fieldRepository.findByName(fieldName);
+        if(!field.isPresent()) {
+            LOGGER.error("Field with name {} not found", fieldName);
+            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+        }
+        return field.get();
     }
 
 }

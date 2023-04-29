@@ -11,6 +11,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,13 +23,15 @@ public class LocationService {
     private final LocationRepository locationRepository;
 
     @Autowired
-    public LocationService(LocationRepository locationRepository){
+    public LocationService(LocationRepository locationRepository) {
         this.locationRepository = locationRepository;
     }
 
     /** CREATE **/
-    /** tested **/
-    public UUID insert(LocationDTO dto){
+    /**
+     * tested
+     **/
+    public UUID insert(LocationDTO dto) {
         Location location = LocationBuilder.toEntity(dto);
         location = locationRepository.save(location);
         LOGGER.debug("Location with id {} was inserted in db", location.getId());
@@ -36,16 +39,20 @@ public class LocationService {
     }
 
     /** SELECT **/
-    /** tested **/
-    public List<LocationDTO> findAll(){
+    /**
+     * tested
+     **/
+    public List<LocationDTO> findAll() {
         List<Location> locations = locationRepository.findAll();
         return locations.stream().map(LocationBuilder::toLocationDTO).collect(Collectors.toList());
     }
 
-    /** tested **/
-    public LocationDTO findById(UUID id){
+    /**
+     * tested
+     **/
+    public LocationDTO findById(UUID id) {
         Optional<Location> location = locationRepository.findById(id);
-        if (!location.isPresent()){
+        if (!location.isPresent()) {
             LOGGER.error("Location with id {} was not found in db", id);
             throw new ResourceNotFoundException(Location.class.getSimpleName());
         }
@@ -53,28 +60,34 @@ public class LocationService {
     }
 
     /** UPDATE **/
-    /** tested **/
-    public UUID update(LocationDTO dto){
+    /**
+     * tested
+     **/
+    public UUID update(LocationDTO dto) {
         UUID id = dto.getId();
         Optional<Location> location = locationRepository.findById(id);
-        if (!location.isPresent()){
+        if (!location.isPresent()) {
             LOGGER.error("Location with id {} was not found in db", id);
             throw new ResourceNotFoundException(Location.class.getSimpleName());
         }
-
-        location.get().setName(dto.getName());
-        location.get().setStreet(dto.getStreet());
-        location.get().setNumber(dto.getNumber());
+        if (dto.getName() != null && !Objects.equals(dto.getName(), ""))
+            location.get().setName(dto.getName());
+        if (dto.getStreet() != null && !Objects.equals(dto.getStreet(), ""))
+            location.get().setStreet(dto.getStreet());
+        if (dto.getNumber() != null && !Objects.equals(dto.getNumber(), ""))
+            location.get().setNumber(dto.getNumber());
         Location updatedLocation = locationRepository.save(location.get());
         LOGGER.debug("Location with id {} was updated in db", id);
         return id;
     }
 
     /** DELETE **/
-    /** tested **/
-    public void delete(UUID id){
+    /**
+     * tested
+     **/
+    public void delete(UUID id) {
         Optional<Location> location = locationRepository.findById(id);
-        if (!location.isPresent()){
+        if (!location.isPresent()) {
             LOGGER.error("Location with id {} was not found in db", id);
             throw new ResourceNotFoundException(Location.class.getSimpleName());
         }

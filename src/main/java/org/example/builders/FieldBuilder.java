@@ -1,5 +1,6 @@
 package org.example.builders;
 
+import org.example.dtos.FieldAndLocationDetailsDTO;
 import org.example.dtos.FieldDetailsDTO;
 import org.example.entities.Field;
 import org.example.entities.Location;
@@ -16,6 +17,13 @@ public class FieldBuilder {
         return Field.builder().id(dto.getId()).
                 name(dto.getName()).
                 location(location).
+                build();
+    }
+
+    public static FieldAndLocationDetailsDTO toFieldAndLocationDetailsDTO(Field field) {
+        return FieldAndLocationDetailsDTO.builder().id(field.getId()).
+                name(field.getName()).
+                locationDTO(LocationBuilder.toLocationDTO(field.getLocation())).
                 build();
     }
 }

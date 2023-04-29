@@ -79,7 +79,7 @@ public class AppUserService {
     public AppUserDetailsDTO findByEmailAndPassword(String email, String password){
         Optional<AppUser> user = appUserRepository.findByEmailAndPassword(email,password);
         if(!user.isPresent()){
-            LOGGER.error("Person with was not found in db");
+            LOGGER.error("Person with the provided email and password was not found in db");
             throw new ResourceNotFoundException(AppUser.class.getSimpleName());
         }
         return AppUserBuilder.toAppUserDTO(user.get());

@@ -44,8 +44,8 @@ public class TariffController {
     }
 
     @GetMapping(value = "/field")
-    public ResponseEntity<TariffDTO> getTariffsByField(@RequestParam(value = "name") String fieldName){
-        TariffDTO tariffDTOS = tariffService.getTariffByField(fieldName);
+    public ResponseEntity<List<TariffDTO>> getTariffsByField(@RequestParam(value = "name") String fieldName){
+        List<TariffDTO> tariffDTOS = tariffService.getTariffByField(fieldName);
         return new ResponseEntity<>(tariffDTOS, HttpStatus.OK);
     }
 

@@ -1,5 +1,6 @@
 package org.example.controllers;
 
+import org.example.dtos.FieldAndLocationDetailsDTO;
 import org.example.dtos.FieldDetailsDTO;
 import org.example.dtos.LocationDTO;
 import org.example.services.FieldService;
@@ -40,8 +41,8 @@ public class FieldController {
     /** SELECT **/
     /** tested **/
     @GetMapping
-    public ResponseEntity<List<FieldDetailsDTO>> getFields(){
-        List<FieldDetailsDTO> fields = fieldService.findAll();
+    public ResponseEntity<List<FieldAndLocationDetailsDTO>> getFields(){
+        List<FieldAndLocationDetailsDTO> fields = fieldService.findAll();
         return new ResponseEntity<>(fields, HttpStatus.OK);
     }
 
