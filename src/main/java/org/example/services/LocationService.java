@@ -11,6 +11,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -69,11 +70,11 @@ public class LocationService {
             LOGGER.error("Location with id {} was not found in db", id);
             throw new ResourceNotFoundException(Location.class.getSimpleName());
         }
-        if (dto.getName() != null)
+        if (dto.getName() != null && !Objects.equals(dto.getName(), ""))
             location.get().setName(dto.getName());
-        if (dto.getStreet() != null)
+        if (dto.getStreet() != null && !Objects.equals(dto.getStreet(), ""))
             location.get().setStreet(dto.getStreet());
-        if (dto.getNumber() != null)
+        if (dto.getNumber() != null && !Objects.equals(dto.getNumber(), ""))
             location.get().setNumber(dto.getNumber());
         Location updatedLocation = locationRepository.save(location.get());
         LOGGER.debug("Location with id {} was updated in db", id);

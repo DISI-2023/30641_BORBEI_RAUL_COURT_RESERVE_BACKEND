@@ -17,6 +17,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -107,11 +108,11 @@ public class FieldService {
             LOGGER.error("Field with id {} was not found in db", id);
             throw new ResourceNotFoundException(Field.class.getSimpleName());
         }
-        if (dto.getLocationId() != null) {
+        if (dto.getLocationId() != null && !Objects.equals(dto.getLocationId().toString(), "")) {
             Location newLocation = this.validateLocation(dto.getLocationId());
             field.get().setLocation(newLocation);
         }
-        if (dto.getName() != null)
+        if (dto.getName() != null && !Objects.equals(dto.getName(), ""))
             field.get().setName(dto.getName());
 
         Field updatedField = fieldRepository.save(field.get());
