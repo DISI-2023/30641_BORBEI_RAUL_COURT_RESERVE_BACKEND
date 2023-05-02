@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -176,7 +177,7 @@ public class ReservationService {
      */
     public List<FreeReservationIntervalsDTO> getVacantIntervalsByFieldAndDate(FieldNameAndDateDTO fieldNameAndDateDTO){
         Field field = this.validateField(fieldNameAndDateDTO.getFieldName());
-        LocalDateTime date = fieldNameAndDateDTO.getDate();
+        LocalDate date = fieldNameAndDateDTO.getDate();
 
         /**
          * Here we retrieve all the reservations from the provided date, starting with
@@ -184,10 +185,10 @@ public class ReservationService {
          */
         List<Reservation> allReservationsFromDay = reservationRepository.
                 findByFieldAndStartTimeGreaterThanEqualAndStartTimeLessThanEqual(field,
-                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 10, 00),
+                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 10, 0),
                         LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 21, 59));
 
-        List<FreeReservationIntervalsDTO> freeReservationIntervals = new ArrayList<FreeReservationIntervalsDTO>();
+        List<FreeReservationIntervalsDTO> freeReservationIntervals = new ArrayList<>();
 
         /**
          * Here I loop through every hour from 10 to 22 and iterate each step through the entire list of reservations
