@@ -34,6 +34,12 @@ public class Location {
     @Column(name = "number", nullable = false)
     private String number;
 
+    @Column(name = "latitude", nullable = false)
+    private double latitude;
+
+    @Column(name = "longitude", nullable = false)
+    private double longitude;
+
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
     private List<Field> fieldList;
 

@@ -42,4 +42,10 @@ public class AppUser {
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
     private List<Subscription> subscriptionList;
 
+    @OneToMany(mappedBy = "postedBy", cascade = CascadeType.ALL)
+    private List<Request> requestPostedByList;
+
+    @OneToMany(mappedBy = "takenBy", cascade = CascadeType.ALL)
+    private List<Request> requestTakenByList;
+
 }

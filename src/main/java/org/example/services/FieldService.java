@@ -40,7 +40,7 @@ public class FieldService {
 
     /** CREATE **/
     /**
-     * tested
+     * updated entity and DTOs and tested
      **/
     public UUID insert(FieldDetailsDTO dto) {
         //location validation
@@ -98,7 +98,7 @@ public class FieldService {
 
     /** UPDATE **/
     /**
-     * tested
+     * updated and tested
      **/
     public UUID update(FieldDetailsDTO dto) {
         UUID id = dto.getId();
@@ -115,8 +115,12 @@ public class FieldService {
         if (dto.getName() != null && !Objects.equals(dto.getName(), ""))
             field.get().setName(dto.getName());
 
+        if (dto.getImageUrl() != null && !Objects.equals(dto.getImageUrl(), "")){
+            field.get().setImageUrl(dto.getImageUrl());
+        }
+
         Field updatedField = fieldRepository.save(field.get());
-        LOGGER.debug("Field with id {} was updated in db", id);
+        LOGGER.debug("Field with id {} was updated in db", updatedField.getId());
         return id;
     }
 
