@@ -60,7 +60,7 @@ public class TariffService {
      * This verifies that the type introduced is one of the 4 valid ones (Hourly, Daily, Weekly, Monthly)
      */
     private boolean isTariffTypeValid(String type){
-        return type.equals("Hourly") || type.equals("Daily") || type.equals("Weekly") || type.equals("Monthly");
+        return type.equals("Hourly") || type.equals("Weekly") || type.equals("Monthly") || type.equals("Annually");
     }
 
     /**
