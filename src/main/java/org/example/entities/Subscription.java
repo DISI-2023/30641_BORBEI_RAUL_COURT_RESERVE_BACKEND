@@ -1,11 +1,16 @@
 package org.example.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -26,17 +31,30 @@ public class Subscription {
     @Type(type = "uuid-binary")
     private UUID id;
 
-    @Column(name = "month", nullable = false)
-    private Date month;
+    @Column(name = "day", nullable = false)
+    private DayOfWeek dayOfWeek;
 
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     @Column(name = "startTime", nullable = false)
-    private LocalDateTime startTime;
+    private LocalDate startTime;
 
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     @Column(name = "endTime", nullable = false)
-    private LocalDateTime endTime;
+    private LocalDate endTime;
+
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="hh:mm:ss")
+    @Column(name = "startHour", nullable = false)
+    private LocalTime startHour;
+
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="hh:mm:ss")
+    @Column(name = "endHour", nullable = false)
+    private LocalTime endHour;
 
     @Column(name = "finalPrice", nullable = false)
     private double finalPrice;
+
+    @Column(name = "type", nullable = false)
+    private String type;
 
     @ManyToOne
     @JoinColumn(name = "appUser_id")

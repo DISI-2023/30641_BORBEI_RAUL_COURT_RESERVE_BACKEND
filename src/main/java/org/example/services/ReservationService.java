@@ -54,6 +54,7 @@ public class ReservationService {
      * The final price is computed based on the tariff type hourly, which is not needed to be
      * specified in the body of the API call
      * The reservation cannot be made for more than 24h
+     * If the reservation is made from a subscription then the final price will be 0
      */
     public UUID insert(ReservationDTO reservationDTO){
         Optional<Field> field = fieldRepository.findByName(reservationDTO.getFieldName());
@@ -66,7 +67,7 @@ public class ReservationService {
             LOGGER.error("User with email {} not found", reservationDTO.getUserEmail());
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), "Hourly");
+        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), reservationDTO.getType());
         if(!tariff.isPresent()) {
             LOGGER.error("A valid tariff was not found for the specific field");
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
@@ -78,13 +79,16 @@ public class ReservationService {
             throw new IndexOutOfBoundsException(ReservationService.class.getSimpleName());
         }
 
-        double finalPrice = tariff.get().getPrice() * time;
-
         Reservation newReservation = ReservationBuilder.toEntity(reservationDTO);
         newReservation.setField(field.get());
         newReservation.setAppUser(appUser.get());
-        newReservation.setFinalPrice(finalPrice);
         newReservation.setTariffType(tariff.get().getType());
+
+        if(tariff.get().getType().equals("Hourly")) {
+            double finalPrice = tariff.get().getPrice() * time;
+            newReservation.setFinalPrice(finalPrice);
+        }
+
         newReservation = reservationRepository.save(newReservation);
         LOGGER.info("New reservation created");
         return  newReservation.getId();
