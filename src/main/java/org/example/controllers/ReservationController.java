@@ -33,6 +33,7 @@ public class ReservationController {
      */
     @PostMapping()
     public ResponseEntity<UUID> createReservation(@Valid @RequestBody ReservationDTO reservationDTO){
+        reservationDTO.setType("Hourly");
         UUID id = reservationService.insert(reservationDTO);
         return new ResponseEntity<>(id, HttpStatus.CREATED);
     }
