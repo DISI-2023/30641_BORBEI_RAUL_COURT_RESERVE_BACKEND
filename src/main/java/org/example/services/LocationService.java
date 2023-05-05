@@ -32,7 +32,21 @@ public class LocationService {
      * updated and tested
      **/
     public UUID insert(LocationDTO dto) {
-        Location location = LocationBuilder.toEntity(dto);
+        Location location = new Location();
+        if (dto.getName() == null)
+            location.setName("");
+        else
+            location.setName(dto.getName());
+        if (dto.getStreet() == null)
+            location.setStreet("");
+        else
+            location.setStreet(dto.getStreet());
+        if (dto.getNumber() == null)
+            location.setNumber("");
+        else
+            location.setNumber(dto.getNumber());
+        location.setLatitude(dto.getLatitude());
+        location.setLongitude(dto.getLongitude());
         location = locationRepository.save(location);
         LOGGER.debug("Location with id {} was inserted in db", location.getId());
         return location.getId();
