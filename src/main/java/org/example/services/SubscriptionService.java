@@ -14,8 +14,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class SubscriptionService {
@@ -107,5 +109,16 @@ public class SubscriptionService {
                reservationRepository.save(reservation);
            }
        }
+    }
+
+    public List<SubscriptionDTO> getAll(){
+        List<Subscription> subscriptions = subscriptionRepository.findAll();
+        return subscriptions.stream().map(SubscriptionBuilder::toSubscriptionDTO).collect(Collectors.toList());
+    }
+
+    public List<SubscriptionDTO> getSubscriptionOfUser(UUID userId){
+        Optional<AppUser> appUser = appUserRepository.findById(userId);
+        List<Subscription> subscriptions = subscriptionRepository.findByAppUser(appUser.get());
+        return subscriptions.stream().map(SubscriptionBuilder::toSubscriptionDTO).collect(Collectors.toList());
     }
 }
