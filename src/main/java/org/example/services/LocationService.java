@@ -29,10 +29,24 @@ public class LocationService {
 
     /** CREATE **/
     /**
-     * tested
+     * updated and tested
      **/
     public UUID insert(LocationDTO dto) {
-        Location location = LocationBuilder.toEntity(dto);
+        Location location = new Location();
+        if (dto.getName() == null)
+            location.setName("");
+        else
+            location.setName(dto.getName());
+        if (dto.getStreet() == null)
+            location.setStreet("");
+        else
+            location.setStreet(dto.getStreet());
+        if (dto.getNumber() == null)
+            location.setNumber("");
+        else
+            location.setNumber(dto.getNumber());
+        location.setLatitude(dto.getLatitude());
+        location.setLongitude(dto.getLongitude());
         location = locationRepository.save(location);
         LOGGER.debug("Location with id {} was inserted in db", location.getId());
         return location.getId();
@@ -61,7 +75,7 @@ public class LocationService {
 
     /** UPDATE **/
     /**
-     * tested
+     * updated and tested
      **/
     public UUID update(LocationDTO dto) {
         UUID id = dto.getId();
@@ -70,14 +84,24 @@ public class LocationService {
             LOGGER.error("Location with id {} was not found in db", id);
             throw new ResourceNotFoundException(Location.class.getSimpleName());
         }
+
         if (dto.getName() != null && !Objects.equals(dto.getName(), ""))
             location.get().setName(dto.getName());
         if (dto.getStreet() != null && !Objects.equals(dto.getStreet(), ""))
             location.get().setStreet(dto.getStreet());
         if (dto.getNumber() != null && !Objects.equals(dto.getNumber(), ""))
             location.get().setNumber(dto.getNumber());
+        /**
+         * If no latitude or longitude is specified in the JSON the DTO will contain the value 0.0, not null.
+         * At the same time we are validating that the coordinates entered are valid
+         */
+        if (dto.getLatitude() > 0.0 && dto.getLatitude() <= 90.0)
+            location.get().setLatitude(dto.getLatitude());
+        if (dto.getLongitude() > 0.0 && dto.getLongitude() <= 180.0)
+            location.get().setLongitude(dto.getLongitude());
+
         Location updatedLocation = locationRepository.save(location.get());
-        LOGGER.debug("Location with id {} was updated in db", id);
+        LOGGER.debug("Location with id {} was updated in db", updatedLocation.getId());
         return id;
     }
 

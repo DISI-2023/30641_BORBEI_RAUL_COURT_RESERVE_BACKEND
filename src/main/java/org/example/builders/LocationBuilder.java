@@ -11,6 +11,8 @@ public class LocationBuilder {
                 .name(location.getName())
                 .street(location.getStreet())
                 .number(location.getNumber())
+                .latitude(location.getLatitude())
+                .longitude(location.getLongitude())
                 .build();
     }
 
@@ -20,6 +22,8 @@ public class LocationBuilder {
                 .name(dto.getName())
                 .street(dto.getStreet())
                 .number(dto.getNumber())
+                .latitude(dto.getLatitude())
+                .longitude(dto.getLongitude())
                 .build();
     }
 

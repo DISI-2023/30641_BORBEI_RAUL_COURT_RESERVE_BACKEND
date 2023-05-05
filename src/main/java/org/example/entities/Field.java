@@ -28,6 +28,11 @@ public class Field {
     @Column(name = "name", nullable = false)
     private String name;
 
+    // I decided to increase the length of the URL from the default value of 255
+    // since URLs can get pretty long
+    @Column(name = "image_url", length = 1023)
+    private String imageUrl;
+
     @OneToMany(mappedBy = "field", cascade = CascadeType.ALL)
     private List<Reservation> reservationList;
 

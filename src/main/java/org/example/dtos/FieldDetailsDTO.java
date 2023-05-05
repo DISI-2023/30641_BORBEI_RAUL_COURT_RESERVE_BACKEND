@@ -22,4 +22,6 @@ public class FieldDetailsDTO {
     private String name;
 
     private UUID locationId;
+
+    private String imageUrl;
 }

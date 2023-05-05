@@ -20,12 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -54,6 +51,7 @@ public class ReservationService {
      * The final price is computed based on the tariff type hourly, which is not needed to be
      * specified in the body of the API call
      * The reservation cannot be made for more than 24h
+     * If the reservation is made from a subscription then the final price will be 0
      */
     public UUID insert(ReservationDTO reservationDTO){
         Optional<Field> field = fieldRepository.findByName(reservationDTO.getFieldName());
@@ -66,7 +64,7 @@ public class ReservationService {
             LOGGER.error("User with email {} not found", reservationDTO.getUserEmail());
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
         }
-        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), "Hourly");
+        Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), reservationDTO.getType());
         if(!tariff.isPresent()) {
             LOGGER.error("A valid tariff was not found for the specific field");
             throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
@@ -78,13 +76,16 @@ public class ReservationService {
             throw new IndexOutOfBoundsException(ReservationService.class.getSimpleName());
         }
 
-        double finalPrice = tariff.get().getPrice() * time;
-
         Reservation newReservation = ReservationBuilder.toEntity(reservationDTO);
         newReservation.setField(field.get());
         newReservation.setAppUser(appUser.get());
-        newReservation.setFinalPrice(finalPrice);
         newReservation.setTariffType(tariff.get().getType());
+
+        if(tariff.get().getType().equals("Hourly")) {
+            double finalPrice = tariff.get().getPrice() * time;
+            newReservation.setFinalPrice(finalPrice);
+        }
+
         newReservation = reservationRepository.save(newReservation);
         LOGGER.info("New reservation created");
         return  newReservation.getId();
@@ -176,7 +177,7 @@ public class ReservationService {
      */
     public List<FreeReservationIntervalsDTO> getVacantIntervalsByFieldAndDate(FieldNameAndDateDTO fieldNameAndDateDTO){
         Field field = this.validateField(fieldNameAndDateDTO.getFieldName());
-        LocalDateTime date = fieldNameAndDateDTO.getDate();
+        LocalDate reservationsDate = fieldNameAndDateDTO.getDate();
 
         /**
          * Here we retrieve all the reservations from the provided date, starting with
@@ -184,10 +185,37 @@ public class ReservationService {
          */
         List<Reservation> allReservationsFromDay = reservationRepository.
                 findByFieldAndStartTimeGreaterThanEqualAndStartTimeLessThanEqual(field,
-                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 10, 00),
-                        LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), 21, 59));
+                        LocalDateTime.of(reservationsDate.getYear(), reservationsDate.getMonth(), reservationsDate.getDayOfMonth(), 10, 0),
+                        LocalDateTime.of(reservationsDate.getYear(), reservationsDate.getMonth(), reservationsDate.getDayOfMonth(), 21, 59));
 
-        List<FreeReservationIntervalsDTO> freeReservationIntervals = new ArrayList<FreeReservationIntervalsDTO>();
+
+        /**
+         * This calculates the offset in hours between the time of the machine that the JVM is running on and the
+         * local time of Romania (from where we are running our application).
+         */
+        // Specify the time zones
+        TimeZone timeZone = TimeZone.getDefault();
+        ZoneId zone1 = ZoneId.of(timeZone.getID());
+        ZoneId zone2 = ZoneId.of("Europe/Bucharest");
+
+        // Get the current time in each time zone
+        ZonedDateTime time1 = ZonedDateTime.now(zone1);
+        ZonedDateTime time2 = ZonedDateTime.now(zone2);
+
+        // Calculate the hour difference
+        int offsetHours1 = time1.getOffset().getTotalSeconds() / 3600;
+        int offsetHours2 = time2.getOffset().getTotalSeconds() / 3600;
+        int hourDiff = offsetHours2 - offsetHours1;
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        // the appropriate hour difference is added to the current time as calculated above
+        int currentHour = currentDateTime.getHour() + hourDiff;
+        int iterator = 10;
+        // if the date provided is today and the request is made during business hour the start hour of the search
+        // is adjusted according to current time
+        if ( currentDateTime.toLocalDate().equals(reservationsDate) && currentHour > 9 ){
+            iterator = currentHour + 1;
+        }
 
         /**
          * Here I loop through every hour from 10 to 22 and iterate each step through the entire list of reservations
@@ -195,22 +223,27 @@ public class ReservationService {
          * specifying the start and end time of each interval which is free.
          * One important aspect is that we consider that all reservations are done at fixed hours (12:00, 13:00, etc)
          * and always last multiples of hours (1, 2, 3 or more hours)
+         * This has been modified to verify if the date provided is today, then there will be returned only free time
+         * slots after the present time.
          */
-        for (int i = 10; i < 22; i++){
+        List<FreeReservationIntervalsDTO> freeReservationIntervals = new ArrayList<>();
+        while ( iterator < 22 ){
             boolean isFree = true;
             for (Reservation r : allReservationsFromDay ){
-                if ( r.getStartTime().getHour() <= i && r.getEndTime().getHour() > i){
+                if ( r.getStartTime().getHour() <= iterator && r.getEndTime().getHour() > iterator){
                     isFree = false;
                     break;
                 }
             }
             if (isFree){
-                LocalDateTime startTime = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(),
-                        i, 0);
-                LocalDateTime endTime = LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(),
-                        i+1, 0);
+                LocalDateTime startTime = LocalDateTime.of(reservationsDate.getYear(), reservationsDate.getMonth(), reservationsDate.getDayOfMonth(),
+                        iterator, 0);
+                LocalDateTime endTime = LocalDateTime.of(reservationsDate.getYear(), reservationsDate.getMonth(), reservationsDate.getDayOfMonth(),
+                        iterator+1, 0);
                 freeReservationIntervals.add(new FreeReservationIntervalsDTO(startTime, endTime));
             }
+
+            iterator++;
         }
 
         return freeReservationIntervals;

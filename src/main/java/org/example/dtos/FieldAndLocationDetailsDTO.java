@@ -16,4 +16,6 @@ public class FieldAndLocationDetailsDTO {
     private String name;
 
     private LocationDTO locationDTO;
+
+    private String imageUrl;
 }

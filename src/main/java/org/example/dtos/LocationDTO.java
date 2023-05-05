@@ -24,4 +24,7 @@ public class LocationDTO {
 
     private String number;
 
+    private double latitude;
+
+    private double longitude;
 }

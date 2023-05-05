@@ -5,7 +5,6 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Builder
@@ -25,15 +24,19 @@ public class Request {
     @Type(type = "uuid-binary")
     private UUID id;
 
-    @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+    @Column(name = "take_over", nullable = false)
+    private boolean take_over;
 
-    @Column(name = "message", nullable = false)
-    private String message;
+    @ManyToOne
+    @JoinColumn(name = "posted_by", nullable = false)
+    private AppUser postedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "taken_by")
+    private AppUser takenBy;
 
     @OneToOne
-    @JoinColumn(name = "reservation_id")
+    @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
-
 
 }
