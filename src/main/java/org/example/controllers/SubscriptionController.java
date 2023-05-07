@@ -41,6 +41,8 @@ public class SubscriptionController {
            id = subscriptionService.insert(subscriptionDTO);
         }catch(ResourceNotFoundException e){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }catch (IllegalArgumentException a){
+            return new ResponseEntity<>(null, HttpStatus.NOT_ACCEPTABLE);
         }
         return new ResponseEntity<>(id, HttpStatus.CREATED);
     }
