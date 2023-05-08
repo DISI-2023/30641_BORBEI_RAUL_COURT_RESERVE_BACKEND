@@ -54,12 +54,16 @@ public class RequestController {
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
+    /** DELETE by ID **/
+    // tested
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<UUID> deleteById(@PathVariable("id") UUID id){
         requestService.deleteById(id);
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
+    /** DELETE all requested linked to reservations from the past **/
+    // tested
     @DeleteMapping(value = "deleteFromPast")
     public ResponseEntity<String> deleteFromPastReservations(){
         requestService.deleteRequestsFromPast();
