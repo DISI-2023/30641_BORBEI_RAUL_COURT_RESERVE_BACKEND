@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import javax.validation.Valid;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,5 +72,21 @@ public class SubscriptionController {
         if(subscriptionDTOS.isEmpty())
             return new ResponseEntity<>(subscriptionDTOS, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(subscriptionDTOS, HttpStatus.OK);
+    }
+
+    /**
+     *Method for sending email
+     * parameter : reservation id
+     */
+    @GetMapping(value = "/email")
+    public ResponseEntity<Boolean> sendSubscriptionEmail(@RequestParam(value = "id") UUID subscriptionId){
+        try {
+            emailService.sendSubscriptionEmail(subscriptionId);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
     }
 }
