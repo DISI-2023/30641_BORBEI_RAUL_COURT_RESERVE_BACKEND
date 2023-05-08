@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.Email;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -46,7 +47,7 @@ public class SubscriptionService {
      * CREATE
      */
     public UUID insert(SubscriptionDTO subscriptionDTO){
-        if(subscriptionDTO.getStartHour().getMinute() != 0 || subscriptionDTO.getStartHour().getMinute() !=0
+        if(subscriptionDTO.getStartHour().getMinute() != 0 || subscriptionDTO.getEndHour().getMinute() !=0
         || subscriptionDTO.getStartHour().getSecond() != 0 || subscriptionDTO.getEndHour().getSecond() != 0){
             LOGGER.error("The start ane end hour need to be at fixed hour");
             throw new IllegalArgumentException(SubscriptionService.class.getSimpleName());
