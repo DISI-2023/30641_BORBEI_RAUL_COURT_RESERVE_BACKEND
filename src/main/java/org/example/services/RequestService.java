@@ -77,6 +77,10 @@ public class RequestService {
      * SELECT
      **/
     public List<RequestDetailsDTO> findAll(){
+        // clean all the requests for reservations from the past
+        this.deleteRequestsFromPast();
+
+        // get a list of all the cleaned requests
         List<Request> requests = requestRepository.findAll();
         return requests.stream().map(RequestBuilder::toRequestDetailsDTO).collect(Collectors.toList());
     }
