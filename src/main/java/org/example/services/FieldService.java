@@ -49,7 +49,7 @@ public class FieldService {
         Field field = FieldBuilder.toEntity(dto, newLocation);
         field = fieldRepository.save(field);
         createDefaultTariffs(field, "Hourly");
-        createDefaultTariffs(field, "Daily");
+        createDefaultTariffs(field, "Annually");
         createDefaultTariffs(field, "Weekly");
         createDefaultTariffs(field, "Monthly");
         LOGGER.debug("Field with id {} was inserted in db", field.getId());
