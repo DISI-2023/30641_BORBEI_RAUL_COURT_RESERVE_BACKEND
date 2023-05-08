@@ -1,6 +1,8 @@
 package org.example.dtos;
 
 import lombok.*;
+import org.example.entities.AppUser;
+import org.example.entities.Reservation;
 
 import java.util.UUID;
 
@@ -9,15 +11,15 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RequestDTO {
+public class RequestDetailsDTO {
 
     private UUID id;
 
     private boolean take_over;
 
-    private UUID postedByUserId;
+    private AppUserDetailsDTO postedByUser;
 
     private UUID takenByUserId;
 
-    private UUID reservationId;
+    private ReservationDTO reservation;
 }

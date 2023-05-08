@@ -2,6 +2,7 @@ package org.example.services;
 
 import org.example.builders.RequestBuilder;
 import org.example.dtos.RequestDTO;
+import org.example.dtos.RequestDetailsDTO;
 import org.example.entities.AppUser;
 import org.example.entities.Field;
 import org.example.entities.Request;
@@ -15,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class RequestService {
@@ -39,11 +42,20 @@ public class RequestService {
      */
     public UUID insert(RequestDTO dto){
 
-        // the posted by user is validated
-        AppUser postedByUser = this.validateAppUser(dto.getPostedByUserId());
-
         //the reservation is validated
         Reservation reservation = this.validateReservation(dto.getReservationId());
+
+        // here we verify if a request for the reservation taken as input has already been made
+        // if this is a case we won't proceed with adding another one, for practical reasons and also
+        // because there will be error when trying to retrieve the data from the DB
+        Request req = requestRepository.findFirstByReservation(reservation);
+        if (req != null){
+            LOGGER.error("A request for this reservation was already made!");
+            throw new ResourceNotFoundException(Request.class.getSimpleName());
+        }
+
+        // the posted by user is validated
+        AppUser postedByUser = this.validateAppUser(reservation.getAppUser());
 
         // the take over can't be True at insertion in the DB. This will be modified later to True
         dto.setTake_over(false);
@@ -58,13 +70,28 @@ public class RequestService {
         return request.getId();
     }
 
-    private AppUser validateAppUser(UUID userId){
-        Optional<AppUser> user = appUserRepository.findById(userId);
-        if (!user.isPresent()) {
-            LOGGER.error("User with id {} was not found in db", userId);
-            throw new ResourceNotFoundException(Field.class.getSimpleName());
+    /**
+     * SELECT
+     **/
+    public List<RequestDetailsDTO> findAll(){
+        List<Request> requests = requestRepository.findAll();
+        return requests.stream().map(RequestBuilder::toRequestDetailsDTO).collect(Collectors.toList());
+    }
+
+
+
+    private AppUser validateAppUser(AppUser user){
+        if ( user == null ){
+            LOGGER.error("User with id null was not found in db");
+            throw new ResourceNotFoundException(Request.class.getSimpleName());
         }
-        return user.get();
+
+        Optional<AppUser> searchedUser = appUserRepository.findById(user.getId());
+        if (!searchedUser.isPresent()) {
+            LOGGER.error("User with id {} was not found in db", user.getId());
+            throw new ResourceNotFoundException(Request.class.getSimpleName());
+        }
+        return searchedUser.get();
     }
 
     private Reservation validateReservation(UUID reservationId){
