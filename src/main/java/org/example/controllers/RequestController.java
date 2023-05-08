@@ -44,6 +44,15 @@ public class RequestController {
         return new ResponseEntity<>(requests, HttpStatus.OK);
     }
 
+    /**
+     * SELECT all besides one user's requests
+     */
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<List<RequestDetailsDTO>> getAllExceptUser(@PathVariable("id") UUID id){
+        List<RequestDetailsDTO> requests = requestService.findAllExceptUser(id);
+        return new ResponseEntity<>(requests, HttpStatus.OK);
+    }
+
     /** UPDATE taken by user
      ** Here the JSON should only contain 2 fields: "id" (of the request) and "takenByUserId"
      **/

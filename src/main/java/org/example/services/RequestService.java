@@ -4,7 +4,6 @@ import org.example.builders.RequestBuilder;
 import org.example.dtos.RequestDTO;
 import org.example.dtos.RequestDetailsDTO;
 import org.example.entities.AppUser;
-import org.example.entities.Field;
 import org.example.entities.Request;
 import org.example.entities.Reservation;
 import org.example.repositories.AppUserRepository;
@@ -16,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -82,6 +80,22 @@ public class RequestService {
 
         // get a list of all the cleaned requests
         List<Request> requests = requestRepository.findAll();
+        return requests.stream().map(RequestBuilder::toRequestDetailsDTO).collect(Collectors.toList());
+    }
+
+    /**
+     * SELECT all requests besides one specified user
+     */
+    public List<RequestDetailsDTO> findAllExceptUser(UUID userId){
+
+        // validate user
+        AppUser user = this.validateAppUserId(userId);
+
+        // clean all the requests for reservations from the past
+        this.deleteRequestsFromPast();
+
+        List<Request> requests = requestRepository.findRequestByPostedByNot(user);
+
         return requests.stream().map(RequestBuilder::toRequestDetailsDTO).collect(Collectors.toList());
     }
 
