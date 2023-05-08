@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,7 +46,7 @@ public class RequestService {
     public UUID insert(RequestDTO dto){
 
         //the reservation is validated
-        Reservation reservation = this.validateReservation(dto.getReservationId());
+        Reservation reservation = this.validateReservationId(dto.getReservationId());
 
         // here we verify if a request for the reservation taken as input has already been made
         // if this is a case we won't proceed with adding another one, for practical reasons and also
@@ -78,28 +81,91 @@ public class RequestService {
         return requests.stream().map(RequestBuilder::toRequestDetailsDTO).collect(Collectors.toList());
     }
 
+    /**
+     * UPDATE taken by user
+     **/
+    public UUID updateTakenByUser(RequestDTO dto){
 
+        UUID takenByUserId = dto.getTakenByUserId();
+
+        // validate the taken by user ID
+        AppUser takenByUser = this.validateAppUserId(takenByUserId);
+
+        // validate the request ID sent from FE
+        Request originalRequest = this.validateRequestId(dto.getId());
+
+        originalRequest.setTakenBy(takenByUser);
+
+        Request newRequest = requestRepository.save(originalRequest);
+
+        return newRequest.getId();
+    }
+
+    /**
+     * DELETE by ID
+     **/
+    public void deleteById(UUID id){
+        this.validateRequestId(id);
+        requestRepository.deleteById(id);
+        LOGGER.debug("Request with id {} was deleted", id);
+    }
+
+    /**
+     * DELETE past requests
+     **/
+    public void deleteRequestsFromPast(){
+
+        // we get a list with all the reservations
+        List<Request> allRequests = requestRepository.findAll();
+
+        // we loop through every request and if the start time date is before the current time it will be deleted
+        for (Request r : allRequests ){
+            if ( r.getReservation().getStartTime().isBefore(LocalDateTime.now(ZoneId.of("Europe/Bucharest")))){
+                requestRepository.delete(r);
+            }
+        }
+
+    }
+
+    private AppUser validateAppUserId(UUID userId){
+        Optional<AppUser> user = appUserRepository.findById(userId);
+        if (!user.isPresent()) {
+            LOGGER.error("User with id {} was not found in db", userId);
+            throw new ResourceNotFoundException(Request.class.getSimpleName());
+        }
+        return user.get();
+    }
 
     private AppUser validateAppUser(AppUser user){
+
         if ( user == null ){
             LOGGER.error("User with id null was not found in db");
-            throw new ResourceNotFoundException(Request.class.getSimpleName());
+            throw new ResourceNotFoundException(AppUser.class.getSimpleName());
         }
 
         Optional<AppUser> searchedUser = appUserRepository.findById(user.getId());
         if (!searchedUser.isPresent()) {
             LOGGER.error("User with id {} was not found in db", user.getId());
-            throw new ResourceNotFoundException(Request.class.getSimpleName());
+            throw new ResourceNotFoundException(AppUser.class.getSimpleName());
         }
         return searchedUser.get();
     }
 
-    private Reservation validateReservation(UUID reservationId){
+    private Reservation validateReservationId(UUID reservationId){
         Optional<Reservation> reservation = reservationRepository.findById(reservationId);
         if (!reservation.isPresent()) {
             LOGGER.error("Reservation with id {} was not found in db", reservationId);
-            throw new ResourceNotFoundException(Field.class.getSimpleName());
+            throw new ResourceNotFoundException(Reservation.class.getSimpleName());
         }
         return reservation.get();
+    }
+
+    private Request validateRequestId(UUID requestId){
+        Optional<Request> request = requestRepository.findById(requestId);
+        if (!request.isPresent()) {
+            LOGGER.error("Reservation with id {} was not found in db", request);
+            throw new ResourceNotFoundException(Request.class.getSimpleName());
+        }
+        return request.get();
     }
 }

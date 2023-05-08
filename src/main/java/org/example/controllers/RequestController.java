@@ -26,9 +26,9 @@ public class RequestController {
     }
 
     /** INSERT
-     * not tested
+     ** The JSON should contain only 1 field "reservationId" for insertion
      **/
-    // The JSON should contain only 1 field "reservationId" for insertion
+    // tested
     @PostMapping
     public ResponseEntity<UUID> insertRequest(@Valid @RequestBody RequestDTO dto){
         UUID id = requestService.insert(dto);
@@ -36,11 +36,33 @@ public class RequestController {
     }
 
     /** SELECT
-     * not tested
+     * tested
      **/
     @GetMapping
     public ResponseEntity<List<RequestDetailsDTO>> getAllRequests(){
         List<RequestDetailsDTO> requests = requestService.findAll();
         return new ResponseEntity<>(requests, HttpStatus.OK);
+    }
+
+    /** UPDATE taken by user
+     ** Here the JSON should only contain 2 fields: "id" (of the request) and "takenByUserId"
+     **/
+    //tested
+    @PostMapping(value = "/takenByUpdate")
+    public ResponseEntity<UUID> updateReservationWithTakenByUser(@Valid @RequestBody RequestDTO dto){
+        UUID id = requestService.updateTakenByUser(dto);
+        return new ResponseEntity<>(id, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<UUID> deleteById(@PathVariable("id") UUID id){
+        requestService.deleteById(id);
+        return new ResponseEntity<>(id, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "deleteFromPast")
+    public ResponseEntity<String> deleteFromPastReservations(){
+        requestService.deleteRequestsFromPast();
+        return new ResponseEntity<>("Request for reservations from the past deleted successfully", HttpStatus.OK);
     }
 }

@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface RequestRepository extends JpaRepository<Request, UUID> {
-    List<Request> findByReservation(Reservation reservation);
-
     Request findFirstByReservation(Reservation reservation);
 
 }
