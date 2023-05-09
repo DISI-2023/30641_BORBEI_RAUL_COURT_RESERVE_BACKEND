@@ -58,8 +58,10 @@ public class RequestService {
         // the posted by user is validated
         AppUser postedByUser = this.validateAppUser(reservation.getAppUser());
 
-        // the take over can't be True at insertion in the DB. This will be modified later to True
-        dto.setTake_over(false);
+        // The take over is defaulted to false. If it is specified in the JSON as true it will be set as true
+        // otherwise it will remain false, as when it's null it is actually set as false by default,
+        // so it can't have a null value
+        dto.setTake_over(dto.isTake_over());
 
         // also, the taken by user can't be assigned to the request at the insertion.
         // This will happen later, when someone accepts this request
