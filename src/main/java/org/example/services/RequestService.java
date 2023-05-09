@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLOutput;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -103,7 +104,9 @@ public class RequestService {
 
     /**
      * UPDATE taken by user
-     **/
+     * @param dto
+     * @return
+     */
     public UUID updateTakenByUser(RequestDTO dto){
 
         UUID takenByUserId = dto.getTakenByUserId();
@@ -119,6 +122,45 @@ public class RequestService {
         Request newRequest = requestRepository.save(originalRequest);
 
         return newRequest.getId();
+    }
+
+    /**
+     * UPDATE the taken by user as well as the user from the reservation
+     * @param dto
+     * @return
+     */
+    public UUID acceptTakeOverReservation(RequestDTO dto){
+        // validate the request ID
+        Request originalRequest = this.validateRequestId(dto.getId());
+
+        // validate if this is indeed a takeover request
+        if (!originalRequest.isTake_over()){
+            LOGGER.error("Request with id {} does NOT support takeover", dto.getId());
+            throw new ResourceNotFoundException(RequestService.class.getSimpleName());
+        }
+
+        // validate the taken by user ID
+        AppUser takenByUser = this.validateAppUserId(dto.getTakenByUserId());
+
+        // verify to not have the same posted by and taken by user
+        if (takenByUser.getId().equals(originalRequest.getPostedBy().getId())){
+            LOGGER.error("Request with id {} cannot be taken over by the same user that posted it!", dto.getId());
+            throw new ResourceNotFoundException(RequestService.class.getSimpleName());
+        }
+
+        // Update the taken by user
+        UUID reqId = this.updateTakenByUser(dto);
+
+        //the reservation is validated
+        Reservation reservation = this.validateReservationId(dto.getReservationId());
+
+        // set the new user for reservation
+        reservation.setAppUser(takenByUser);
+
+        // save the updated reservation
+        reservationRepository.save(reservation);
+
+        return reqId;
     }
 
     /**
@@ -183,7 +225,7 @@ public class RequestService {
     private Request validateRequestId(UUID requestId){
         Optional<Request> request = requestRepository.findById(requestId);
         if (!request.isPresent()) {
-            LOGGER.error("Reservation with id {} was not found in db", request);
+            LOGGER.error("Reservation with id {} was not found in db", requestId);
             throw new ResourceNotFoundException(Request.class.getSimpleName());
         }
         return request.get();

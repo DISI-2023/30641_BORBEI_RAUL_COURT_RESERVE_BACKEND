@@ -58,10 +58,21 @@ public class RequestController {
      **/
     //tested
     @PutMapping(value = "/takenByUpdate")
-    public ResponseEntity<UUID> updateReservationWithTakenByUser(@Valid @RequestBody RequestDTO dto){
+    public ResponseEntity<UUID> updateRequestWithTakenByUser(@Valid @RequestBody RequestDTO dto){
         UUID id = requestService.updateTakenByUser(dto);
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
+
+    /**
+     * UPDATE on a request that was taken over by a user
+     * The JSON should contain the following fields: "id" (of the request), "takenByUserId" and "reservationId"
+     */
+    @PutMapping(value = "/take")
+    public ResponseEntity<UUID> updateRequestAndReservationWithTakenByUser(@Valid @RequestBody RequestDTO dto){
+        UUID id = requestService.acceptTakeOverReservation(dto);
+        return new ResponseEntity<>(id, HttpStatus.OK);
+    }
+
 
     /** DELETE by ID **/
     // tested

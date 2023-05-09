@@ -1,11 +1,9 @@
 package org.example.services;
 
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.example.builders.ReservationBuilder;
 import org.example.dtos.FieldNameAndDateDTO;
 import org.example.dtos.FreeReservationIntervalsDTO;
 import org.example.dtos.ReservationDTO;
-import org.example.dtos.TariffDTO;
 import org.example.entities.AppUser;
 import org.example.entities.Field;
 import org.example.entities.Reservation;
@@ -20,7 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
