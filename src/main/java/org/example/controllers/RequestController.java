@@ -64,7 +64,7 @@ public class RequestController {
     }
 
     /**
-     * UPDATE on a request that was taken over by a user
+     * UPDATE on a request that was taken over by a user as well as updating the corresponding reservation
      * The JSON should contain the following fields: "id" (of the request), "takenByUserId" and "reservationId"
      */
     @PutMapping(value = "/take")
