@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.Email;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -46,20 +47,25 @@ public class SubscriptionService {
      * CREATE
      */
     public UUID insert(SubscriptionDTO subscriptionDTO){
+        if(subscriptionDTO.getStartHour().getMinute() != 0 || subscriptionDTO.getEndHour().getMinute() !=0
+        || subscriptionDTO.getStartHour().getSecond() != 0 || subscriptionDTO.getEndHour().getSecond() != 0){
+            LOGGER.error("The start ane end hour need to be at fixed hour");
+            throw new IllegalArgumentException(SubscriptionService.class.getSimpleName());
+        }
         Optional<Field> field = fieldRepository.findByName(subscriptionDTO.getFieldName());
         if(!field.isPresent()) {
             LOGGER.error("Field with name {} not found", subscriptionDTO.getFieldName());
-            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+            throw new ResourceNotFoundException(SubscriptionService.class.getSimpleName());
         }
         Optional<AppUser> appUser = appUserRepository.findByEmail(subscriptionDTO.getUserEmail());
         if(!appUser.isPresent()) {
             LOGGER.error("User with email {} not found", subscriptionDTO.getUserEmail());
-            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+            throw new ResourceNotFoundException(SubscriptionService.class.getSimpleName());
         }
         Optional<Tariff> tariff = tariffRepository.findByFieldAndType(field.get(), subscriptionDTO.getType());
         if(!tariff.isPresent()) {
             LOGGER.error("A valid tariff was not found for the specific field");
-            throw new ResourceNotFoundException(ReservationService.class.getSimpleName());
+            throw new ResourceNotFoundException(SubscriptionService.class.getSimpleName());
         }
         double price = computePrice(tariff.get().getPrice(), tariff.get().getType(), subscriptionDTO.getStartTime(), subscriptionDTO.getEndTime());
 
