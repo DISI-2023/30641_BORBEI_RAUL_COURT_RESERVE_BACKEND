@@ -57,7 +57,7 @@ public class RequestController {
      ** Here the JSON should only contain 2 fields: "id" (of the request) and "takenByUserId"
      **/
     //tested
-    @PostMapping(value = "/takenByUpdate")
+    @PutMapping(value = "/takenByUpdate")
     public ResponseEntity<UUID> updateReservationWithTakenByUser(@Valid @RequestBody RequestDTO dto){
         UUID id = requestService.updateTakenByUser(dto);
         return new ResponseEntity<>(id, HttpStatus.OK);
