@@ -19,7 +19,7 @@ public class RequestDetailsDTO {
 
     private AppUserDetailsDTO postedByUser;
 
-    private UUID takenByUserId;
+    private AppUserDetailsDTO takenByUser;
 
     private ReservationDTO reservation;
 }

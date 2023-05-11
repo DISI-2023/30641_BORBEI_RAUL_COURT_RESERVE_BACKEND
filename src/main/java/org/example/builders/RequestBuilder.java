@@ -34,7 +34,7 @@ public class RequestBuilder {
                 .id(request.getId())
                 .take_over(request.isTake_over())
                 .postedByUser(AppUserBuilder.toAppUserDTO(request.getPostedBy()))
-                .takenByUserId(request.getTakenBy() == null ? null : request.getTakenBy().getId())
+                .takenByUser(request.getTakenBy() == null ? null : AppUserBuilder.toAppUserDTO(request.getTakenBy()))
                 .reservation(ReservationBuilder.toReservationDTO(request.getReservation()))
                 .build();
     }
